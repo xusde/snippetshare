@@ -10,6 +10,11 @@ import (
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
 
+	// custom not found handler
+	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.notfound(w)
+	})
+
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static/", fileServer))
