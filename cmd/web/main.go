@@ -58,6 +58,7 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = mysqlstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
 
 	// Initialize a new instance of application containing the dependencies
 	app := &application{
@@ -68,9 +69,16 @@ func main() {
 		sessionManager: sessionManager,
 	}
 
-	// start server
-	logger.Info("Starting server", "addr", *addr)
-	err = http.ListenAndServe(*addr, app.routes())
+	// create a http.Server instance
+	srv := http.Server{
+		Addr:     *addr,
+		Handler:  app.routes(),
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	}
+
+	// start server (on HTTPS via TLS)
+	logger.Info("Starting server", "addr", srv.Addr)
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 
 	logger.Error(err.Error())
 	os.Exit(1)
