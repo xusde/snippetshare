@@ -1,10 +1,23 @@
 package validator
 
 import (
+	"regexp"
 	"slices"
 	"strings"
 	"unicode/utf8"
 )
+
+// Regular expression to check if an email address is valid.
+var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+// Return true if value contains at least n characters
+func MinChars(values string, n int) bool {
+	return utf8.RuneCountInString(values) >= n
+}
+
+func MatchesPattern(rx *regexp.Regexp, value string) bool {
+	return rx.MatchString(value)
+}
 
 // Define a new Validator type which contains a map of validation errors.
 type Validator struct {
