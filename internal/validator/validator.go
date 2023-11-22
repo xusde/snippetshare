@@ -7,6 +7,23 @@ import (
 	"unicode/utf8"
 )
 
+// Define a new Validator type which contains a map of validation errors.
+// And NonFieldErrors which are not related to a specific form field.
+type Validator struct {
+	NonFieldErrors []string
+	FieldErrors    map[string]string
+}
+
+// Returns true if there are no errors, otherwise returns false.
+func (v *Validator) Valid() bool {
+	return len(v.NonFieldErrors) == 0 && len(v.FieldErrors) == 0
+}
+
+// Adding error messages to the NonFieldErrors slice
+func (v *Validator) AddNonFieldError(message string) {
+	v.NonFieldErrors = append(v.NonFieldErrors, message)
+}
+
 // Regular expression to check if an email address is valid.
 var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
@@ -17,16 +34,6 @@ func MinChars(values string, n int) bool {
 
 func MatchesPattern(rx *regexp.Regexp, value string) bool {
 	return rx.MatchString(value)
-}
-
-// Define a new Validator type which contains a map of validation errors.
-type Validator struct {
-	FieldErrors map[string]string
-}
-
-// Returns true if there are no errors, otherwise returns false.
-func (v *Validator) Valid() bool {
-	return len(v.FieldErrors) == 0
 }
 
 // Checks if the form field is empty. If it is empty, add the message to the
