@@ -35,7 +35,7 @@ func main() {
 	// build custom logger
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		// let logger print the source file and line number
-		// AddSource: true,
+		AddSource: true,
 	}))
 
 	// create a sql.DB pool

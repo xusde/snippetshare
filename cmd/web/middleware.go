@@ -1,12 +1,45 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/justinas/nosurf"
 )
 
+// middleware to authenticate users
+func (app *application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Retrieve the user ID from the session.
+		id := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+		// If there is no authenticatedUserID value in the session, it'll return 0.
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Otherwise, fetch the details of the current user from the database.
+		exists, err := app.users.Exists(id)
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
+
+		// If a matching is found, store it in the request context
+		if exists {
+			ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
+			r = r.WithContext(ctx)
+		} else {
+			next.ServeHTTP(w, r)
+		}
+
+		// Call the next handler in the chain.
+		next.ServeHTTP(w, r)
+	})
+}
+
+// middleware to prevent cross-site request forgery attacks
 func noSurf(next http.Handler) http.Handler {
 	csrfHandler := nosurf.New(next)
 
